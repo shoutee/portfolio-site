@@ -47,7 +47,7 @@ export interface NavItem {
 
 /** カテゴリフィルター */
 export interface FilterOption {
-  readonly value: string;  // "" = すべて
+  readonly value: "" | TechCategory;  // "" = すべて
   readonly label: string;
 }
 

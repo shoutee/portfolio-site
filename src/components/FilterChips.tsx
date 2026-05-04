@@ -1,11 +1,11 @@
 "use client";
 
-import type { FilterOption } from "@/lib/types";
+import type { FilterOption, TechCategory } from "@/lib/types";
 
 interface FilterChipsProps {
   options: readonly FilterOption[];
-  active: string;
-  onChange: (value: string) => void;
+  active: "" | TechCategory;
+  onChange: (value: "" | TechCategory) => void;
 }
 
 /**

@@ -15,6 +15,8 @@ const CATEGORY_COLORS: Record<TechCategory, { bg: string; text: string }> = {
 
 interface ProjectCardProps {
   project: Project;
+  /** カードのリスト順。0 のとき LCP 対策で eager loading + priority を有効化 */
+  index?: number;
 }
 
 /**
@@ -24,7 +26,7 @@ interface ProjectCardProps {
  * - 外部URLは sanitizeExternalUrl() でXSS対策済み
  * - 画像読み込み失敗時はグラデーションプレースホルダーを表示
  */
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
   const [imgError, setImgError] = useState(false);
   const safeGithubUrl = sanitizeExternalUrl(project.githubUrl);
   const safeDemoUrl   = sanitizeExternalUrl(project.demoUrl);
@@ -59,7 +61,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover"
-            loading="lazy"
+            /* index=0 のカードはファーストビューに表示されるため LCP 対策で eager */
+            priority={index === 0}
+            loading={index === 0 ? "eager" : "lazy"}
             onError={() => setImgError(true)}
           />
         )}

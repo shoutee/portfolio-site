@@ -172,11 +172,12 @@ section[id] {
 }
 
 .btn-primary {
+  background: var(--color-primary);
   transition: background-color 150ms ease, transform 150ms ease;
 }
 @media (hover: hover) {
   .btn-primary:hover {
-    background: var(--color-primary-light) !important;
+    background: var(--color-primary-light);
     transform: translateY(-1px);
   }
 }
@@ -240,6 +241,7 @@ section[id] {
    前庭障害・動き過敏のユーザーへの配慮
    ----------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   .animate-fade-in,
   .animate-slide-in,
   .animate-badge-pop,

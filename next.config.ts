@@ -14,10 +14,6 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  // 複数の lockfile が存在する環境でのワークスペース検出警告を抑制
-  turbopack: {
-    root: __dirname,
-  },
 };
 
 export default nextConfig;

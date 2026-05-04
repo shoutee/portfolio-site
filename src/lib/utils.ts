@@ -10,6 +10,9 @@ const ALLOWED_PROTOCOLS = ["https:"] as const;
  * `javascript:` / `data:` / `http:` など危険・非推奨スキームを undefined に変換し
  * `<a href={url}>` 経由のXSSを防ぐ。
  *
+ * NOTE: プロトコル検証のみ実施。URL の出所が信頼できる静的データである前提で使用すること。
+ *       ユーザー入力や CMS 由来の URL には追加バリデーションが必要。
+ *
  * @example
  * sanitizeExternalUrl("https://github.com/user") // → "https://github.com/user"
  * sanitizeExternalUrl("javascript:alert(1)")      // → undefined (+ dev warning)

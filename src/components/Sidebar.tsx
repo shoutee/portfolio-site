@@ -67,7 +67,8 @@ export function Sidebar({ navItems, activeId, onNavClick }: SidebarProps) {
             <button
               key={item.id}
               onClick={() => onNavClick(item.href, item.id)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150"
+              /* btn-ghost が @media(hover:hover) でホバーをカバー — JSハンドラー不要 */
+              className="btn-ghost flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150"
               style={{
                 background: isActive ? "rgba(255, 107, 43, 0.12)" : "transparent",
                 color: isActive
@@ -81,17 +82,6 @@ export function Sidebar({ navItems, activeId, onNavClick }: SidebarProps) {
               title={collapsed ? item.label : undefined}
               aria-label={collapsed ? item.label : undefined}
               aria-current={isActive ? "page" : undefined}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLButtonElement).style.background =
-                    "var(--color-bg-elevated)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                }
-              }}
             >
               <Icon
                 size={18}
@@ -109,21 +99,15 @@ export function Sidebar({ navItems, activeId, onNavClick }: SidebarProps) {
         })}
       </nav>
 
-      {/* 折りたたみボタン */}
+      {/* 折りたたみボタン — btn-ghost が hover をカバー */}
       <button
-        className="mt-auto m-2 flex h-10 w-auto items-center justify-center rounded-lg p-2 transition-colors duration-150"
+        className="btn-ghost mt-auto m-2 flex h-10 w-auto items-center justify-center rounded-lg p-2 transition-colors duration-150"
         style={{
           background: "var(--color-bg-elevated)",
           color: "var(--color-text-muted)",
         }}
         onClick={toggleCollapse}
         aria-label={collapsed ? "サイドバーを展開" : "サイドバーを折りたたむ"}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.color = "var(--color-text-primary)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.color = "var(--color-text-muted)";
-        }}
       >
         {collapsed ? (
           <ChevronRight size={16} aria-hidden="true" />

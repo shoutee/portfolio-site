@@ -55,8 +55,9 @@ export const NAV_ITEMS: readonly NavItem[] = [
 // =============================================================================
 
 export const FILTER_OPTIONS: readonly FilterOption[] = [
-  { value: "",         label: "すべて" },
-  { value: "ai",       label: "AI" },
-  { value: "frontend", label: "フロント" },
-  { value: "tool",     label: "ツール" },
+  { value: "",          label: "すべて" },
+  { value: "ai",        label: "AI" },
+  { value: "frontend",  label: "フロント" },
+  { value: "backend",   label: "バックエンド" },
+  { value: "tool",      label: "ツール" },
 ] as const;

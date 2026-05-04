@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import type { NavItem, NavClickHandler } from "@/lib/types";
 
@@ -30,6 +30,16 @@ export function TopBar({ navItems, onNavClick }: TopBarProps) {
   const toggleMobile = useCallback(() => {
     setMobileOpen((prev) => !prev);
   }, []);
+
+  /** WAI-ARIA Menu Button: Escape でドロワーを閉じる */
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [mobileOpen]);
 
   return (
     <header

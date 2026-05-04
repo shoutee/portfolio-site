@@ -10,16 +10,10 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PROJECTS, NAV_ITEMS, FILTER_OPTIONS } from "@/data/projects";
 import type { TechCategory } from "@/lib/types";
 
-/** TechCategory の型ガード — as キャストを排除 */
-function isTechCategory(v: string): v is TechCategory {
-  return (["ai", "frontend", "backend", "tool"] as const).includes(
-    v as TechCategory
-  );
-}
-
 export default function PortfolioPage() {
   const [activeNav, setActiveNav] = useState("home");
-  const [activeFilter, setActiveFilter] = useState("");
+  /** FilterOption.value が "" | TechCategory に絞られているため型ガード不要 */
+  const [activeFilter, setActiveFilter] = useState<"" | TechCategory>("");
 
   const heroRef    = useRef<HTMLElement>(null);
   const workRef    = useRef<HTMLElement>(null);
@@ -44,13 +38,15 @@ export default function PortfolioPage() {
       refMap[href]?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       if (id) setActiveNav(id);
     },
-    [heroRef, workRef, aboutRef, contactRef]
+    // useRef オブジェクトは参照安定のため依存配列は空でよい
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 
-  /** カテゴリフィルター — useMemo でメモ化 */
+  /** カテゴリフィルター — useMemo でメモ化。型が "" | TechCategory なので型ガード不要 */
   const filteredProjects = useMemo(
     () =>
-      activeFilter && isTechCategory(activeFilter)
+      activeFilter
         ? PROJECTS.filter((p) => p.tags.some((t) => t.category === activeFilter))
         : PROJECTS,
     [activeFilter]
@@ -105,11 +101,11 @@ export default function PortfolioPage() {
 
             <div className="mt-8 flex flex-wrap gap-3">
               {/* btn-primary クラスで CSS hover / active を共通化 */}
+              {/* background は .btn-primary CSS クラスで管理 — インライン background 削除で !important 不要に */}
               <button
                 onClick={() => handleNavClick("#work", "work")}
                 className="btn-primary rounded-lg px-5 py-3 text-sm font-bold"
                 style={{
-                  background: "var(--color-primary)",
                   color: "var(--color-text-inverse)",
                   boxShadow: "0 4px 14px rgba(255, 107, 43, 0.35)",
                 }}
@@ -217,7 +213,7 @@ export default function PortfolioPage() {
                       className="animate-fade-in"
                       style={{ animationDelay: `${i * 60}ms` }}
                     >
-                      <ProjectCard project={project} />
+                      <ProjectCard project={project} index={i} />
                     </li>
                   ))}
                 </ul>
@@ -350,7 +346,6 @@ export default function PortfolioPage() {
                 rel="noopener noreferrer"
                 className="btn-primary mt-4 inline-flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-bold"
                 style={{
-                  background: "var(--color-primary)",
                   color: "var(--color-text-inverse)",
                   boxShadow: "0 4px 14px rgba(255, 107, 43, 0.35)",
                 }}

@@ -24,6 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: { componentStack: string }): void {
+    // TODO: 本番モニタリング（Sentry等）導入時はここで reportError(error, info) を呼ぶ
     if (process.env.NODE_ENV === "development") {
       console.error("[ErrorBoundary]", error, info.componentStack);
     }
