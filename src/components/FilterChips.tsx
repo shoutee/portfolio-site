@@ -1,17 +1,18 @@
 "use client";
 
-import type { FilterOption } from "@/lib/types";
+import type { FilterOption, TechCategory } from "@/lib/types";
 
 interface FilterChipsProps {
   options: readonly FilterOption[];
-  active: string;
-  onChange: (value: string) => void;
+  active: "" | TechCategory;
+  onChange: (value: "" | TechCategory) => void;
 }
 
 /**
  * カテゴリフィルターのピル群。
- * - YAML: components.tag_chip
- * - active 時: orange border + translucent background
+ * - タッチターゲット: min-h-[44px] で最低高さを確保
+ * - text-xs (12px): text-[11px] から引き上げ（可読性最低基準）
+ * - aria-pressed でスクリーンリーダーに選択状態を伝える
  */
 export function FilterChips({ options, active, onChange }: FilterChipsProps) {
   return (
@@ -22,7 +23,8 @@ export function FilterChips({ options, active, onChange }: FilterChipsProps) {
           <li key={opt.value}>
             <button
               onClick={() => onChange(opt.value)}
-              className="rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] transition-colors duration-150"
+              /* py-3 + text-xs で高さ ≈ 44px（タッチターゲット確保） */
+              className="rounded-full border px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] transition-colors duration-150"
               style={
                 isActive
                   ? {

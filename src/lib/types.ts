@@ -20,29 +20,40 @@ export type ProjectStatus = "completed" | "in_progress" | "archived";
 
 /** ポートフォリオの1プロジェクト */
 export interface Project {
-  readonly id: string;            // URL-safe な一意ID（例: "subagent-skill"）
-  readonly title: string;         // プロジェクトタイトル
-  readonly description: string;   // 1〜2文の説明
-  readonly imagePath: string;     // /images/xxx.png（public/ 起点の絶対パス）
-  readonly imageAlt: string;      // アクセシビリティ用 alt テキスト
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+  readonly imagePath: string;   // public/ 起点の絶対パス
+  readonly imageAlt: string;    // アクセシビリティ用 alt（必須）
   readonly tags: readonly TechTag[];
   readonly status: ProjectStatus;
-  readonly date: string;          // ISO 8601 形式 (YYYY-MM-DD)
-  readonly githubUrl?: string;    // 外部リンクは string のみ許容（URL検証済み前提）
+  readonly date: string;        // ISO 8601 形式 (YYYY-MM-DD)
+  readonly githubUrl?: string;  // レンダリング前に sanitizeExternalUrl() で検証すること
   readonly demoUrl?: string;
 }
+
+/** Sidebar で使用できるアイコン名（Lucide Icons）
+ *  ICON_MAP のキーと同期して管理する */
+export type ValidIconName = "Home" | "LayoutGrid" | "User" | "Mail";
 
 /** サイドバーのナビゲーションアイテム */
 export interface NavItem {
   readonly id: string;
   readonly label: string;
-  readonly icon: string;          // Lucide アイコン名（表示はコンポーネント側で解決）
+  readonly icon: ValidIconName;
   // 型レベルで外部URLを排除: ページ内アンカー or 内部パスのみ許容
   readonly href: `#${string}` | `/${string}`;
 }
 
 /** カテゴリフィルター */
 export interface FilterOption {
-  readonly value: string;         // "" = すべて
+  readonly value: "" | TechCategory;  // "" = すべて
   readonly label: string;
 }
+
+/**
+ * ナビゲーションクリックのハンドラー型。
+ * TopBar / Sidebar で共通利用する。
+ * id は省略可能（TopBar はセクション id を渡し、Sidebar は nav item id を渡す）。
+ */
+export type NavClickHandler = (href: `#${string}` | `/${string}`, id?: string) => void;

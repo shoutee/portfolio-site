@@ -40,10 +40,12 @@
   --color-danger:  #ef4444;
   --color-info:    #3b82f6;
 
-  /* --- Text --- */
+  /* --- Text ---
+     NOTE: text-muted は #6b7194 に変更（旧 #555a72 は bg-surface 上で約3.2:1 → WCAG AA 未達）
+           新値の推定コントラスト比 ≈ 4.6:1 (on bg-surface) */
   --color-text-primary:   #f0f2f8;
   --color-text-secondary: #9399b2;
-  --color-text-muted:     #555a72;
+  --color-text-muted:     #6b7194;
   --color-text-inverse:   #0d0f14;
 
   /* --- Fonts --- */
@@ -56,20 +58,17 @@
    Tailwind v4 テーマ拡張
    ----------------------------------------------------------------------------- */
 @theme inline {
-  /* Colors */
-  --color-bg-base:      var(--color-bg-base);
-  --color-bg-surface:   var(--color-bg-surface);
-  --color-bg-elevated:  var(--color-bg-elevated);
-  --color-bg-border:    var(--color-bg-border);
-  --color-primary:      var(--color-primary);
+  --color-bg-base:       var(--color-bg-base);
+  --color-bg-surface:    var(--color-bg-surface);
+  --color-bg-elevated:   var(--color-bg-elevated);
+  --color-bg-border:     var(--color-bg-border);
+  --color-primary:       var(--color-primary);
   --color-primary-light: var(--color-primary-light);
-  --color-secondary:    var(--color-secondary);
-  --color-tertiary:     var(--color-tertiary);
-  --color-txt-primary:  var(--color-text-primary);
+  --color-secondary:     var(--color-secondary);
+  --color-tertiary:      var(--color-tertiary);
+  --color-txt-primary:   var(--color-text-primary);
   --color-txt-secondary: var(--color-text-secondary);
-  --color-txt-muted:    var(--color-text-muted);
-
-  /* Typography */
+  --color-txt-muted:     var(--color-text-muted);
   --font-sans: var(--font-body);
   --font-mono: var(--font-mono);
 }
@@ -77,13 +76,9 @@
 /* -----------------------------------------------------------------------------
    ベーススタイル
    ----------------------------------------------------------------------------- */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   background-color: var(--color-bg-base);
@@ -93,6 +88,23 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* -----------------------------------------------------------------------------
+   [Critical Fix] フォーカスインジケーター — WCAG 2.1 SC 2.4.7
+   キーボードユーザーがフォーカス位置を視認できるようにする
+   ----------------------------------------------------------------------------- */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg-base), 0 0 0 4px var(--color-secondary);
+  border-radius: 4px;
+}
+
+/* -----------------------------------------------------------------------------
+   [Critical Fix] セクションのスクロール余白 — 固定TopBar(56px)による見出し隠れを防ぐ
+   ----------------------------------------------------------------------------- */
+section[id] {
+  scroll-margin-top: 72px; /* 56px TopBar + 16px 余白 */
 }
 
 /* -----------------------------------------------------------------------------
@@ -106,23 +118,94 @@ body {
 /* -----------------------------------------------------------------------------
    グロー・エフェクトユーティリティ
    ----------------------------------------------------------------------------- */
-.glow-primary {
-  box-shadow: 0 0 0 3px var(--color-primary-glow);
-}
-.glow-secondary {
-  box-shadow: 0 0 0 3px var(--color-secondary-glow);
-}
+.glow-primary  { box-shadow: 0 0 0 3px var(--color-primary-glow); }
+.glow-secondary { box-shadow: 0 0 0 3px var(--color-secondary-glow); }
 
-/* カードグラデーションオーバーレイ（YAML: overlay.gradient_bottom） */
+/* カードグラデーションオーバーレイ */
 .card-scrim {
   background: linear-gradient(to top, rgba(13,15,20,0.95) 0%, transparent 55%);
 }
 
-/* frosted glass（YAML: effects.frosted_glass） */
+/* frosted glass */
 .frosted {
   background: rgba(22, 24, 31, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+/* -----------------------------------------------------------------------------
+   [Warning Fix] ProjectCard — CSS Hover に移行
+   onMouseEnter/Leave JS ハンドラーを削除し、CSS で hover / active を定義
+   @media (hover: hover) でタッチデバイスへの誤適用を防ぐ
+   ----------------------------------------------------------------------------- */
+.project-card {
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* タッチデバイス: タップフィードバック */
+.project-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 12px rgba(255, 107, 43, 0.20);
+  border-color: rgba(255, 107, 43, 0.30);
+}
+
+/* マウス対応デバイスのみ hover エフェクト */
+@media (hover: hover) {
+  .project-card:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 32px rgba(255, 107, 43, 0.25);
+    border-color: rgba(255, 107, 43, 0.40);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   [Warning Fix] ボタン共通 hover スタイル — DRY 違反解消
+   ----------------------------------------------------------------------------- */
+.btn-ghost {
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.btn-ghost:hover {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+@media (hover: hover) {
+  .btn-primary:hover {
+    background: var(--color-primary-light);
+    transform: translateY(-1px);
+  }
+}
+.btn-primary:active { transform: scale(0.97); }
+
+/* -----------------------------------------------------------------------------
+   [Warning Fix] グラデーションテキスト — @supports フォールバック
+   ----------------------------------------------------------------------------- */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@supports not (-webkit-background-clip: text) {
+  .gradient-text {
+    background: none;
+    -webkit-text-fill-color: unset;
+    color: var(--color-primary);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   [Warning Fix] モバイルドロワー — 出現アニメーション
+   ----------------------------------------------------------------------------- */
+.mobile-drawer {
+  animation: drawerSlideDown 0.2s cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 /* -----------------------------------------------------------------------------
@@ -144,6 +227,40 @@ body {
   100% { transform: scale(1);   opacity: 1; }
 }
 
-.animate-fade-in   { animation: fadeIn    0.25s cubic-bezier(0,0,0.2,1) both; }
-.animate-slide-in  { animation: slideInLeft 0.25s cubic-bezier(0,0,0.2,1) both; }
-.animate-badge-pop { animation: badgePop  0.25s cubic-bezier(0,0,0.2,1) both; }
+@keyframes drawerSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in   { animation: fadeIn       0.25s cubic-bezier(0,0,0.2,1) both; }
+.animate-slide-in  { animation: slideInLeft  0.25s cubic-bezier(0,0,0.2,1) both; }
+.animate-badge-pop { animation: badgePop     0.25s cubic-bezier(0,0,0.2,1) both; }
+
+/* -----------------------------------------------------------------------------
+   [Critical Fix] prefers-reduced-motion — WCAG 2.1 SC 2.3.3
+   前庭障害・動き過敏のユーザーへの配慮
+   ----------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .animate-fade-in,
+  .animate-slide-in,
+  .animate-badge-pop,
+  .mobile-drawer {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   強制カラーモード（Windows High Contrast）への基本対応
+   ----------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .frosted       { background: Canvas; }
+  .project-card  { border: 1px solid ButtonText; }
+  .card-scrim    { background: none; }
+}
