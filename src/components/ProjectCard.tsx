@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import type { Project, TechCategory } from "@/lib/types";
 import { sanitizeExternalUrl, formatYearMonth } from "@/lib/utils";
@@ -18,51 +19,52 @@ interface ProjectCardProps {
 
 /**
  * ポートフォリオの1プロジェクトを表示するカード。
- * - サムネイル 16/9、グラデーションオーバーレイ
- * - Hover: translateY(-3px) scale(1.02) + orange glow
- * - next/image で遅延読み込み（loading="lazy"）
+ * - Hover / Active: globals.css の .project-card クラスで CSS 制御
+ *   (@media hover:hover でタッチデバイスへの誤適用を防ぐ)
  * - 外部URLは sanitizeExternalUrl() でXSS対策済み
- * - YAML: components.card
+ * - 画像読み込み失敗時はグラデーションプレースホルダーを表示
  */
 export function ProjectCard({ project }: ProjectCardProps) {
+  const [imgError, setImgError] = useState(false);
   const safeGithubUrl = sanitizeExternalUrl(project.githubUrl);
   const safeDemoUrl   = sanitizeExternalUrl(project.demoUrl);
 
   return (
     <article
-      className="group relative overflow-hidden rounded-[10px] border transition-[transform,box-shadow] duration-150"
+      className="project-card relative overflow-hidden rounded-[10px] border"
       style={{
         background: "var(--color-bg-surface)",
         borderColor: "var(--color-bg-border)",
       }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.transform = "translateY(-3px) scale(1.02)";
-        el.style.boxShadow = "0 8px 32px rgba(255, 107, 43, 0.25)";
-        el.style.borderColor = "rgba(255, 107, 43, 0.40)";
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.transform = "";
-        el.style.boxShadow = "";
-        el.style.borderColor = "var(--color-bg-border)";
-      }}
     >
       {/* サムネイル（16/9） */}
       <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
-        <Image
-          src={project.imagePath}
-          alt={project.imageAlt}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover"
-          loading="lazy"
-        />
-        {/* グラデーションオーバーレイ (YAML: card_scrim) */}
-        <div
-          className="card-scrim absolute inset-0 pointer-events-none"
-          aria-hidden="true"
-        />
+        {imgError ? (
+          /* 画像読み込み失敗時のフォールバック */
+          <div
+            className="absolute inset-0 flex items-center justify-center text-xs"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(255,107,43,0.12), rgba(0,212,255,0.08))",
+              color: "var(--color-text-muted)",
+            }}
+            aria-label={project.imageAlt}
+          >
+            No Image
+          </div>
+        ) : (
+          <Image
+            src={project.imagePath}
+            alt={project.imageAlt}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover"
+            loading="lazy"
+            onError={() => setImgError(true)}
+          />
+        )}
+        {/* グラデーションオーバーレイ */}
+        <div className="card-scrim absolute inset-0 pointer-events-none" aria-hidden="true" />
       </div>
 
       {/* カード本文 */}
@@ -80,14 +82,14 @@ export function ProjectCard({ project }: ProjectCardProps) {
           {project.description}
         </p>
 
-        {/* タグ */}
+        {/* タグ（text-[10px] → text-xs に変更: 可読性最低基準 12px） */}
         <ul className="mt-2 flex flex-wrap gap-1" aria-label="使用技術">
           {project.tags.map((tag) => {
             const colors = CATEGORY_COLORS[tag.category];
             return (
               <li
                 key={tag.label}
-                className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em]"
+                className="rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.06em]"
                 style={{ background: colors.bg, color: colors.text }}
               >
                 {tag.label}
@@ -98,16 +100,17 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
         {/* 外部リンク（sanitize済みURLのみ表示） */}
         {(safeGithubUrl || safeDemoUrl) && (
-          <div className="mt-2 flex gap-2">
+          <div className="mt-2 flex gap-3">
             {safeGithubUrl && (
               <a
                 href={safeGithubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] font-semibold uppercase tracking-wide transition-colors duration-150"
+                className="text-xs font-semibold uppercase tracking-wide transition-colors duration-150"
                 style={{ color: "var(--color-secondary)" }}
               >
                 GitHub
+                <span className="sr-only">（新しいタブで開きます）</span>
               </a>
             )}
             {safeDemoUrl && (
@@ -115,19 +118,20 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 href={safeDemoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] font-semibold uppercase tracking-wide transition-colors duration-150"
+                className="text-xs font-semibold uppercase tracking-wide transition-colors duration-150"
                 style={{ color: "var(--color-primary)" }}
               >
                 Demo
+                <span className="sr-only">（新しいタブで開きます）</span>
               </a>
             )}
           </div>
         )}
 
-        {/* 日付（Invalid Date ガード済み） */}
+        {/* 日付（text-[11px] → text-xs、Invalid Date ガード済み） */}
         <time
           dateTime={project.date}
-          className="mt-2 block text-[11px]"
+          className="mt-2 block text-xs"
           style={{ color: "var(--color-text-muted)" }}
         >
           {formatYearMonth(project.date)}

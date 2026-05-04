@@ -10,26 +10,27 @@ import {
   ChevronRight,
   type LucideIcon,
 } from "lucide-react";
-import type { NavItem } from "@/lib/types";
+import type { NavItem, ValidIconName, NavClickHandler } from "@/lib/types";
 
-// アイコン名→コンポーネントのマッピング（動的 import を避けて型安全に）
-const ICON_MAP: Record<string, LucideIcon> = {
+// ValidIconName でキーを制約 — ICON_MAP に存在しないアイコン名は型エラー
+const ICON_MAP: Record<ValidIconName, LucideIcon> = {
   Home,
   LayoutGrid,
   User,
   Mail,
-} as const;
+};
 
 interface SidebarProps {
   navItems: readonly NavItem[];
   activeId: string;
-  onNavClick: (href: string, id: string) => void;
+  onNavClick: NavClickHandler;
 }
 
 /**
  * 左側固定サイドバー。
  * - 展開: 220px（アイコン + ラベル）/ 折りたたみ: 64px（アイコンのみ）
- * - YAML: components.sidebar_nav
+ * - duration-[250ms]: Tailwind v4 任意値構文（旧 duration-250 は無効）
+ * - 折りたたみ時: aria-label でアイコンのみでも読み上げ対応
  */
 export function Sidebar({ navItems, activeId, onNavClick }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -42,13 +43,13 @@ export function Sidebar({ navItems, activeId, onNavClick }: SidebarProps) {
 
   return (
     <aside
-      className="hidden lg:flex flex-col border-r transition-[width] duration-250"
+      /* duration-250 → duration-[250ms]: Tailwind v4 任意値構文 */
+      className="hidden lg:flex flex-col border-r transition-[width] duration-[250ms]"
       style={{
         width,
         minWidth: width,
         background: "var(--color-bg-surface)",
         borderColor: "var(--color-bg-border)",
-        // sticky: TopBarの高さ(56px)以下から画面下まで
         position: "sticky",
         top: 56,
         height: "calc(100vh - 56px)",
@@ -57,10 +58,9 @@ export function Sidebar({ navItems, activeId, onNavClick }: SidebarProps) {
       }}
       aria-label="サイドナビゲーション"
     >
-      {/* ナビリンク */}
       <nav className="flex flex-col gap-1 p-2 pt-4">
         {navItems.map((item) => {
-          const Icon = ICON_MAP[item.icon] ?? Home;
+          const Icon = ICON_MAP[item.icon];
           const isActive = activeId === item.id;
 
           return (
@@ -69,15 +69,18 @@ export function Sidebar({ navItems, activeId, onNavClick }: SidebarProps) {
               onClick={() => onNavClick(item.href, item.id)}
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150"
               style={{
-                background: isActive
-                  ? "rgba(255, 107, 43, 0.12)"
-                  : "transparent",
+                background: isActive ? "rgba(255, 107, 43, 0.12)" : "transparent",
                 color: isActive
                   ? "var(--color-primary-light)"
                   : "var(--color-text-secondary)",
                 justifyContent: collapsed ? "center" : "flex-start",
+                /* タッチターゲット確保 */
+                minHeight: 44,
               }}
+              /* 折りたたみ時: title (tooltip) + aria-label でスクリーンリーダー対応 */
               title={collapsed ? item.label : undefined}
+              aria-label={collapsed ? item.label : undefined}
+              aria-current={isActive ? "page" : undefined}
               onMouseEnter={(e) => {
                 if (!isActive) {
                   (e.currentTarget as HTMLButtonElement).style.background =
@@ -86,20 +89,17 @@ export function Sidebar({ navItems, activeId, onNavClick }: SidebarProps) {
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
-                  (e.currentTarget as HTMLButtonElement).style.background =
-                    "transparent";
+                  (e.currentTarget as HTMLButtonElement).style.background = "transparent";
                 }
               }}
-              aria-current={isActive ? "page" : undefined}
             >
               <Icon
                 size={18}
                 style={{
-                  color: isActive
-                    ? "var(--color-primary)"
-                    : "var(--color-text-secondary)",
+                  color: isActive ? "var(--color-primary)" : "var(--color-text-secondary)",
                   flexShrink: 0,
                 }}
+                aria-hidden="true"
               />
               {!collapsed && (
                 <span className="truncate animate-fade-in">{item.label}</span>
@@ -111,7 +111,7 @@ export function Sidebar({ navItems, activeId, onNavClick }: SidebarProps) {
 
       {/* 折りたたみボタン */}
       <button
-        className="mt-auto m-2 flex items-center justify-center rounded-lg p-2 transition-colors duration-150"
+        className="mt-auto m-2 flex h-10 w-auto items-center justify-center rounded-lg p-2 transition-colors duration-150"
         style={{
           background: "var(--color-bg-elevated)",
           color: "var(--color-text-muted)",
@@ -119,15 +119,17 @@ export function Sidebar({ navItems, activeId, onNavClick }: SidebarProps) {
         onClick={toggleCollapse}
         aria-label={collapsed ? "サイドバーを展開" : "サイドバーを折りたたむ"}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.color =
-            "var(--color-text-primary)";
+          (e.currentTarget as HTMLButtonElement).style.color = "var(--color-text-primary)";
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.color =
-            "var(--color-text-muted)";
+          (e.currentTarget as HTMLButtonElement).style.color = "var(--color-text-muted)";
         }}
       >
-        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        {collapsed ? (
+          <ChevronRight size={16} aria-hidden="true" />
+        ) : (
+          <ChevronLeft size={16} aria-hidden="true" />
+        )}
       </button>
     </aside>
   );
